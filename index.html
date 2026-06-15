@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>百家樂專業算牌器</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #ffffff;
+            --text-secondary: #aaaaaa;
+            --player-color: #007aff;
+            --banker-color: #ff3b30;
+            --tie-color: #34c759;
+            --accent-color: #ffcc00;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        header h1 {
+            font-size: 1.2rem;
+            color: var(--accent-color);
+        }
+
+        /* 儀表板區域 */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 12px 0;
+        }
+
+        .panel {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .panel-title {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .panel-value {
+            font-size: 1.6rem;
+            font-weight: bold;
+        }
+
+        .player-text { color: var(--player-color); }
+        .banker-text { color: var(--banker-color); }
+
+        .sub-info {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* 剩餘牌數顯示 */
+        .deck-info {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 8px;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        /* 點擊出牌區 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            flex-grow: 1;
+            align-content: center;
+        }
+
+        .card-btn {
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            color: var(--text-color);
+            border-radius: 12px;
+            padding: 15px 0;
+            font-size: 1.3rem;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        .card-btn:active {
+            background-color: #444;
+            transform: scale(0.95);
+        }
+
+        .card-btn span {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: normal;
+            margin-top: 2px;
+        }
+
+        /* 功能控制按鈕 */
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .btn {
+            padding: 12px 0;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-undo {
+            background-color: #3a3a3c;
+            color: var(--text-color);
+        }
+
+        .btn-reset {
+            background-color: #54c7ec;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>百家樂高階算牌輔助器 (8副牌)</h1>
+    </header>
+
+    <!-- 數據預測儀表板 -->
+    <div class="dashboard">
+        <div class="panel">
+            <div class="panel-title">下一局建議推薦</div>
+            <div class="panel-value" id="recommendation">等候數據</div>
+            <div class="sub-info" id="advantage-diff">優勢差: 0.00%</div>
+        </div>
+        <div class="panel">
+            <div class="panel-title">即時精準機率</div>
+            <div class="sub-info player-text">閒: <span id="prob-player">44.62%</span></div>
+            <div class="sub-info banker-text">莊: <span id="prob-banker">45.86%</span></div>
+            <div class="sub-info" style="color:var(--tie-color)">和: <span id="prob-tie">9.52%</span></div>
+        </div>
+    </div>
+
+    <!-- 牌靴狀態 -->
+    <div class="deck-info">
+        剩餘總張數: <span id="total-cards">416</span> 張 (約 <span id="rem-decks">8.00</span> 副) | 
+        已開出: <span id="played-cards">0</span> 張
+    </div>
+
+    <!-- 點擊出牌鍵盤 -->
+    <div class="card-grid">
+        <button class="card-btn" onclick="inputCard(1)">A <span id="count-1">32</span></button>
+        <button class="card-btn" onclick="inputCard(2)">2 <span id="count-2">32</span></button>
+        <button class="card-btn" onclick="inputCard(3)">3 <span id="count-3">32</span></button>
+        <button class="card-btn" onclick="inputCard(4)">4 <span id="count-4">32</span></button>
+        <button class="card-btn" onclick="inputCard(5)">5 <span id="count-5">32</span></button>
+        <button class="card-btn" onclick="inputCard(6)">6 <span id="count-6">32</span></button>
+        <button class="card-btn" onclick="inputCard(7)">7 <span id="count-7">32</span></button>
+        <button class="card-btn" onclick="inputCard(8)">8 <span id="count-8">32</span></button>
+        <button class="card-btn" onclick="inputCard(9)">9 <span id="count-9">32</span></button>
+        <button class="card-btn" onclick="inputCard(0)">10 <span id="count-0">32</span></button>
+        <button class="card-btn" onclick="inputCard(0)">J <span id="count-11">32</span></button>
+        <button class="card-btn" onclick="inputCard(0)">Q <span id="count-12">32</span></button>
+        <button class="card-btn" onclick="inputCard(0)">K <span id="count-13">32</span></button>
+        <div style="grid-column: span 3; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--text-secondary); text-align: center; padding: 5px;">
+            ※ 每當桌面上開出什麼牌，就點擊對應的按鈕。10、J、Q、K 皆算作 0 點。
+        </div>
+    </div>
+
+    <!-- 底部控制鈕 -->
+    <div class="controls">
+        <button class="btn btn-undo" onclick="undo()">⬅ 上一步 (按錯復原)</button>
+        <button class="btn btn-reset" onclick="resetDeck()">🔄 新牌靴重置</button>
+    </div>
+
+    <script>
+        // 初始化 8 副牌 (每種點數的初始張數)
+        // 10, J, Q, K 在百家樂中均為 0 點，但在剩餘牌數統計中分開計算
+        const INITIAL_COUNTS = {
+            1: 32, 2: 32, 3: 32, 4: 32, 5: 32, 6: 32, 7: 32, 8: 32, 9: 32, 0: 32, // 10
+            11: 32, 12: 32, 13: 32 // J, Q, K
+        };
+
+        let currentCounts = { ...INITIAL_COUNTS };
+        let history = [];
+
+        // 百家樂算牌傳統指標 (對閒與莊的邊際效應值)
+        // 4 和 6 被抽走最有利於莊；1, 2, 3 被抽走有利於閒
+        const CARD_VALUES = {
+            1: -0.6, 2: -0.6, 3: -0.7, 4: -1.1, 
+            5: +0.7, 6: +0.9, 7: +0.7, 8: -0.4, 
+            9: -0.2, 0: 0, 11: 0, 12: 0, 13: 0
+        };
+
+        function updateUI() {
+            let totalCards = 0;
+            for (let key in currentCounts) {
+                totalCards += currentCounts[key];
+                document.getElementById(`count-${key}`).innerText = currentCounts[key];
+            }
+
+            let played = 416 - totalCards;
+            document.getElementById('total-cards').innerText = totalCards;
+            document.getElementById('rem-decks').innerText = (totalCards / 52).toFixed(2);
+            document.getElementById('played-cards').innerText = played;
+
+            // 計算當前算牌流水點數 (Running Count)
+            let runningCount = 0;
+            history.forEach(card => {
+                runningCount += CARD_VALUES[card];
+            });
+
+            // 計算真數 (True Count) - 每剩下一副牌的平均點數
+            let remDecks = totalCards / 52;
+            let trueCount = remDecks > 0.5 ? (runningCount / remDecks) : runningCount;
+
+            // 基本基準機率（基準：莊 45.86%, 閒 44.62%, 和 9.52%）
+            // 根據真數動態微調預測率
+            let playerShift = trueCount * 0.08; 
+            let bankerShift = -trueCount * 0.08;
+
+            let finalPlayer = Math.max(10, Math.min(80, 44.62 + playerShift));
+            let finalBanker = Math.max(10, Math.min(80, 45.86 + bankerShift));
+            let finalTie = 100 - finalPlayer - finalBanker;
+
+            document.getElementById('prob-player').innerText = finalPlayer.toFixed(2) + '%';
+            document.getElementById('prob-banker').innerText = finalBanker.toFixed(2) + '%';
+            document.getElementById('prob-tie').innerText = finalTie.toFixed(2) + '%';
+
+            // 判斷優勢推薦
+            let recElement = document.getElementById('recommendation');
+            let diffElement = document.getElementById('advantage-diff');
+            
+            // 計算與原本賭場初始優勢的偏差
+            let pAdvantage = finalPlayer - 44.62;
+            let bAdvantage = finalBanker - 45.86;
+
+            if (played < 12) {
+                recElement.innerText = "觀察中";
+                recElement.className = "panel-value";
+                diffElement.innerText = "請先輸入前幾局的牌";
+            } else if (finalPlayer > finalBanker) {
+                recElement.innerText = "推薦【閒】";
+                recElement.className = "panel-value player-text";
+                diffElement.innerText = `閒家優勢上升: +${pAdvantage.toFixed(2)}%`;
+            } else if (finalBanker > finalPlayer) {
+                recElement.innerText = "推薦【莊】";
+                recElement.className = "panel-value banker-text";
+                diffElement.innerText = `莊家優勢上升: +${bAdvantage.toFixed(2)}%`;
+            } else {
+                recElement.innerText = "兩邊對等";
+                recElement.className = "panel-value";
+                diffElement.innerText = "優勢差: 0.00%";
+            }
+        }
+
+        function inputCard(val) {
+            // 判斷真實點數按鍵
+            let targetKey = val;
+            
+            // 處理J Q K 10 的特殊對應顯示
+            if (val === 0 && event) {
+                const btnText = event.currentTarget.innerText.split('\n')[0];
+                if (btnText === 'J') targetKey = 11;
+                else if (btnText === 'Q') targetKey = 12;
+                else if (btnText === 'K') targetKey = 13;
+                else targetKey = 0;
+            }
+
+            if (currentCounts[targetKey] > 0) {
+                currentCounts[targetKey]--;
+                history.push(targetKey);
+                updateUI();
+            }
+        }
+
+        function undo() {
+            if (history.length > 0) {
+                let lastCard = history.pop();
+                currentCounts[lastCard]++;
+                updateUI();
+            }
+        }
+
+        function resetDeck() {
+            if (confirm("確定要重置並開始新的一靴牌嗎？")) {
+                currentCounts = { ...INITIAL_COUNTS };
+                history = [];
+                updateUI();
+            }
+        }
+
+        // 初始化第一次執行
+        updateUI();
+    </script>
+</body>
+</html>
