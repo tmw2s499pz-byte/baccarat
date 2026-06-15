@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>CP/AP 算牌系統 Pro</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#121212;
+    color:white;
+    padding:20px;
+}
+
+.container{
+    max-width:500px;
+    margin:auto;
+}
+
+.title{
+    text-align:center;
+    font-size:30px;
+    margin-bottom:20px;
+    font-weight:bold;
+}
+
+.card{
+    background:#1f1f1f;
+    border-radius:15px;
+    padding:20px;
+    margin-bottom:20px;
+}
+
+.section-title{
+    font-size:22px;
+    margin-bottom:10px;
+}
+
+.inputs{
+    display:flex;
+    gap:10px;
+}
+
+.inputs input{
+    flex:1;
+    height:60px;
+    font-size:24px;
+    text-align:center;
+    border:none;
+    border-radius:10px;
+}
+
+.btn{
+    width:100%;
+    height:60px;
+    border:none;
+    border-radius:10px;
+    font-size:22px;
+    font-weight:bold;
+    margin-top:10px;
+    cursor:pointer;
+}
+
+.calculate{
+    background:#00c853;
+    color:white;
+}
+
+.clear{
+    background:#d50000;
+    color:white;
+}
+
+.result{
+    line-height:2;
+    font-size:18px;
+}
+
+.recommend{
+    text-align:center;
+    font-size:32px;
+    font-weight:bold;
+    margin-top:20px;
+}
+
+.player{
+    color:#4fc3f7;
+}
+
+.banker{
+    color:#ff5252;
+}
+
+.tie{
+    color:#ffd740;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="title">
+CP / AP 算牌系統
+</div>
+
+<div class="card">
+
+<div class="section-title">閒家</div>
+
+<div class="inputs">
+<input id="p1" type="number" min="0" max="9">
+<input id="p2" type="number" min="0" max="9">
+<input id="p3" type="number" min="0" max="9">
+</div>
+
+<br>
+
+<div class="section-title">莊家</div>
+
+<div class="inputs">
+<input id="b1" type="number" min="0" max="9">
+<input id="b2" type="number" min="0" max="9">
+<input id="b3" type="number" min="0" max="9">
+</div>
+
+<button class="btn calculate" onclick="calculate()">
+開始計算
+</button>
+
+<button class="btn clear" onclick="clearAll()">
+清空
+</button>
+
+</div>
+
+<div class="card">
+
+<div id="result" class="result">
+等待輸入...
+</div>
+
+<div id="recommend" class="recommend">
+-
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const cp={
+0:0,1:-5,2:-4,3:-3,4:-2,
+5:1,6:2,7:3,8:4,9:5
+};
+
+const ap={
+0:0.5,1:0.4,2:0.3,3:0.3,4:0.1,
+5:0.2,6:0.3,7:0.3,8:0.5,9:0.1
+};
+
+function value(id){
+let v=document.getElementById(id).value;
+return v===""?0:Number(v);
+}
+
+function calculate(){
+
+let p=[
+value("p1"),
+value("p2"),
+value("p3")
+];
+
+let b=[
+value("b1"),
+value("b2"),
+value("b3")
+];
+
+let playerCP=
+cp[p[0]]+
+cp[p[1]]+
+cp[p[2]];
+
+let bankerCP=
+cp[b[0]]+
+cp[b[1]]+
+cp[b[2]];
+
+let totalCP=
+playerCP+bankerCP;
+
+let playerPoint=
+(p[0]+p[1]+p[2])%10;
+
+let bankerPoint=
+(b[0]+b[1]+b[2])%10;
+
+let playerAP=
+ap[playerPoint];
+
+let bankerAP=
+ap[bankerPoint];
+
+let playerAdv=
+totalCP*playerAP;
+
+let bankerAdv=
+totalCP*bankerAP;
+
+document.getElementById("result").innerHTML=`
+閒家CP值：${playerCP}<br>
+莊家CP值：${bankerCP}<br>
+總CP值：${totalCP}<br><br>
+
+閒家AP值：${playerAP}<br>
+莊家AP值：${bankerAP}<br><br>
+
+閒家優勢：${playerAdv.toFixed(2)}<br>
+莊家優勢：${bankerAdv.toFixed(2)}
+`;
+
+let text="";
+let css="";
+
+if(playerAdv>bankerAdv){
+text="推薦：閒家";
+css="player";
+}
+else if(bankerAdv>playerAdv){
+text="推薦：莊家";
+css="banker";
+}
+else{
+text="推薦：平手";
+css="tie";
+}
+
+document.getElementById("recommend").innerHTML=text;
+document.getElementById("recommend").className=
+"recommend "+css;
+
+}
+
+function clearAll(){
+
+["p1","p2","p3","b1","b2","b3"]
+.forEach(id=>document.getElementById(id).value="");
+
+document.getElementById("result").innerHTML=
+"等待輸入...";
+
+document.getElementById("recommend").innerHTML="-";
+}
+
+</script>
+
+</body>
+</html>
