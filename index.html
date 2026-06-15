@@ -2,336 +2,304 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>百家樂流暢算牌器 (按局輸入版)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百家樂科學算牌提示器</title>
     <style>
         :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-color: #ffffff;
-            --text-secondary: #aaaaaa;
-            --player-color: #007aff;
-            --banker-color: #ff3b30;
-            --tie-color: #34c759;
-            --accent-color: #ffcc00;
+            --bg-color: #f4f6f9;
+            --card-color: #ffffff;
+            --primary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
+        
         body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            padding: 12px;
+            color: var(--primary-color);
+            margin: 0;
+            padding: 15px;
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+            align-items: center;
         }
 
-        header {
-            text-align: center;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #333;
-        }
-
-        header h1 {
-            font-size: 1.1rem;
-            color: var(--accent-color);
-        }
-
-        /* 儀表板 */
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            gap: 10px;
-            margin: 10px 0;
-        }
-
-        .panel {
-            background-color: var(--card-bg);
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-color);
             border-radius: 12px;
-            padding: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h2 {
             text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .panel-title {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-bottom: 2px;
-        }
-
-        .panel-value {
+            margin-top: 0;
+            color: var(--primary-color);
             font-size: 1.5rem;
-            font-weight: bold;
         }
 
-        .player-text { color: var(--player-color); }
-        .banker-text { color: var(--banker-color); }
-
-        .sub-info {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        /* 當前單局輸入狀態 */
-        .round-status {
-            background-color: #252525;
-            border-radius: 8px;
-            padding: 8px;
-            text-align: center;
-            font-size: 0.9rem;
-            margin-bottom: 10px;
-            border: 1px dashed #444;
-        }
-
-        /* 兩大段式操作區 */
-        .input-section {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            flex-grow: 1;
-            justify-content: center;
-        }
-
-        .row-title {
-            font-size: 0.9rem;
-            font-weight: bold;
-            margin-left: 4px;
-        }
-
-        .btn-group {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 6px;
-        }
-
-        .num-btn {
-            background-color: #2a2a2a;
-            border: 1px solid #444;
-            color: var(--text-color);
-            border-radius: 8px;
-            padding: 12px 0;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .num-btn:active {
-            background-color: #444;
-        }
-
-        .player-group .num-btn { border-left: 4px solid var(--player-color); }
-        .banker-group .num-btn { border-left: 4px solid var(--banker-color); }
-
-        /* 功能控制 */
-        .controls {
+        /* 儀表板數據顯示 */
+        .dashboard {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-top: 10px;
-            padding-bottom: env(safe-area-inset-bottom);
+            margin-bottom: 20px;
         }
 
-        .btn {
-            padding: 12px 0;
+        .data-box {
+            background: #edf2f7;
+            padding: 12px;
             border-radius: 8px;
-            border: none;
-            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .data-box.highlight {
+            grid-column: span 2;
+            background: #fff9db;
+            border: 2px solid #f59f00;
+        }
+
+        .data-label {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-bottom: 5px;
+        }
+
+        .data-value {
+            font-size: 1.8rem;
             font-weight: bold;
+        }
+
+        /* 注碼提示區 */
+        .signal-box {
+            background: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .signal-trigger {
+            background: #d4edda !important;
+            color: var(--success-color) !important;
+            border: 2px solid var(--success-color);
+            animation: pulse 1.5s infinite;
+        }
+
+        /* 牌副數控制區 */
+        .deck-control {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .deck-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 1rem;
             cursor: pointer;
         }
 
-        .btn-undo { background-color: #3a3a3c; color: var(--text-color); }
-        .btn-reset { background-color: #ff9500; color: #fff; }
+        /* 點擊輸入區 */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .card-btn {
+            padding: 15px 0;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            background: #e2e8f0;
+            color: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: background 0.1s;
+        }
+
+        .card-btn:active {
+            background: #cbd5e1;
+        }
+
+        .btn-plus { border-top: 4px solid var(--success-color); }
+        .btn-minus { border-top: 4px solid var(--accent-color); }
+        .btn-zero { border-top: 4px solid #94a3b8; }
+
+        /* 功能控制 */
+        .action-btns {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .reset-btn {
+            background: #64748b;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>百家樂流暢算牌器 (極速免計張版)</h1>
-    </header>
+<div class="container">
+    <h2>百家樂科學算牌提示器</h2>
+
+    <div class="deck-control">
+        <button class="deck-btn" onclick="adjustDeck(-0.5)">- 0.5 副</button>
+        <div>剩餘牌副數：<span id="deckCount" style="font-weight:bold; color:#3b82f6;">8.0</span> 副</div>
+        <button class="deck-btn" onclick="adjustDeck(0.5)">+ 0.5 副</button>
+    </div>
 
     <div class="dashboard">
-        <div class="panel">
-            <div class="panel-title">下一局預測推薦</div>
-            <div class="panel-value" id="recommendation">等候首局</div>
-            <div class="sub-info" id="advantage-diff">大數據分析中...</div>
+        <div class="data-box">
+            <div class="data-label">當前流水數</div>
+            <div id="runningCount" class="data-value">0</div>
         </div>
-        <div class="panel">
-            <div class="panel-title">即時預估勝率</div>
-            <div class="sub-info player-text" style="font-weight:bold;">閒: <span id="prob-player">44.62%</span></div>
-            <div class="sub-info banker-text" style="font-weight:bold;">莊: <span id="prob-banker">45.86%</span></div>
-            <div class="sub-info" style="color:var(--tie-color)">和: <span id="prob-tie">9.52%</span></div>
+        <div class="data-box">
+            <div class="data-label">已開出張數</div>
+            <div id="cardCount" class="data-value">0</div>
         </div>
-    </div>
-
-    <div class="round-status" id="round-status-text">
-        請點擊下方：輸入【本局閒家最終點數】
-    </div>
-
-    <div class="input-section">
-        <div>
-            <div class="row-title player-text">第一步：點擊「閒家」最終點數</div>
-            <div class="btn-group player-group" style="margin-top: 5px;">
-                <button class="num-btn" onclick="selectScore('P', 0)">0</button>
-                <button class="num-btn" onclick="selectScore('P', 1)">1</button>
-                <button class="num-btn" onclick="selectScore('P', 2)">2</button>
-                <button class="num-btn" onclick="selectScore('P', 3)">3</button>
-                <button class="num-btn" onclick="selectScore('P', 4)">4</button>
-                <button class="num-btn" onclick="selectScore('P', 5)">5</button>
-                <button class="num-btn" onclick="selectScore('P', 6)">6</button>
-                <button class="num-btn" onclick="selectScore('P', 7)">7</button>
-                <button class="num-btn" onclick="selectScore('P', 8)">8</button>
-                <button class="num-btn" onclick="selectScore('P', 9)">9</button>
-            </div>
-        </div>
-
-        <div style="margin-top: 5px;">
-            <div class="row-title banker-text">第二步：點擊「莊家」最終點數</div>
-            <div class="btn-group banker-group" style="margin-top: 5px;">
-                <button class="num-btn" onclick="selectScore('B', 0)">0</button>
-                <button class="num-btn" onclick="selectScore('B', 1)">1</button>
-                <button class="num-btn" onclick="selectScore('B', 2)">2</button>
-                <button class="num-btn" onclick="selectScore('B', 3)">3</button>
-                <button class="num-btn" onclick="selectScore('B', 4)">4</button>
-                <button class="num-btn" onclick="selectScore('B', 5)">5</button>
-                <button class="num-btn" onclick="selectScore('B', 6)">6</button>
-                <button class="num-btn" onclick="selectScore('B', 7)">7</button>
-                <button class="num-btn" onclick="selectScore('B', 8)">8</button>
-                <button class="num-btn" onclick="selectScore('B', 9)">9</button>
-            </div>
+        <div class="data-box highlight">
+            <div class="data-label">當前真數 (True Count)</div>
+            <div id="trueCount" class="data-value">0.00</div>
         </div>
     </div>
 
-    <div class="sub-info" style="text-align: center; margin-top: 5px;">
-        已統計局數: <span id="round-count" style="font-weight:bold; color:var(--accent-color);">0</span> 局
-    </div>
-    <div class="controls">
-        <button class="btn btn-undo" onclick="undoRound()">⬅ 回滾上一局</button>
-        <button class="btn btn-reset" onclick="resetAll()">🔄 洗牌新開靴</button>
+    <div id="signalBox" class="signal-box">
+        等待數據分析...
     </div>
 
-    <script>
-        let roundCount = 0;
-        let tempPlayerScore = null;
-        let historyRounds = [];
-        let currentTrueCount = 0;
+    <div style="font-size:0.85rem; color:#64748b; margin-bottom: 5px; font-weight: bold;">請依開出牌面點擊下方對應點數：</div>
+    <div class="btn-grid">
+        <button class="card-btn btn-plus" onclick="inputCard('1-3')">1,2,3<br><small>(+1.5)</small></button>
+        <button class="card-btn btn-plus" onclick="inputCard('4')">4<br><small>(+3)</small></button>
+        <button class="card-btn btn-minus" onclick="inputCard('5')">5<br><small>(-1)</small></button>
+        <button class="card-btn btn-minus" onclick="inputCard('6')">6<br><small>(-2)</small></button>
+        <button class="card-btn btn-minus" onclick="inputCard('7')">7<br><small>(-1)</small></button>
+        <button class="card-btn btn-minus" onclick="inputCard('8')">8<br><small>(-1)</small></button>
+        <button class="card-btn btn-zero" onclick="inputCard('9-13')">9-K<br><small>(0)</small></button>
+    </div>
 
-        // 統計學上，最終點數對下一局「真數(True Count)」的影響估算模型
-        const P_EFFECT = { 0:-0.2, 1:-0.4, 2:-0.3, 3:-0.5, 4:-0.8, 5:0.4, 6:0.6, 7:0.5, 8:-0.2, 9:-0.1 };
-        const B_EFFECT = { 0:-0.2, 1:-0.3, 2:-0.4, 3:-0.5, 4:-0.7, 5:0.5, 6:0.7, 7:0.4, 8:-0.1, 9:-0.1 };
+    <div class="action-btns">
+        <button class="reset-btn" onclick="resetSystem()">重設新牌靴 (8副牌)</button>
+    </div>
+</div>
 
-        function selectScore(type, score) {
-            if (type === 'P') {
-                tempPlayerScore = score;
-                document.getElementById('round-status-text').innerText = `已選 閒:${score}點 ➔ 請接著點擊【莊家最終點數】`;
-                document.getElementById('round-status-text').style.color = 'var(--banker-color)';
-            } else if (type === 'B') {
-                if (tempPlayerScore === null) {
-                    alert('請先點擊上方的閒家點數！');
-                    return;
-                }
-                
-                // 兩邊都輸入完成，結算這一局
-                executeRoundEnd(tempPlayerScore, score);
-            }
+<script>
+    // 初始狀態變數
+    let runningCount = 0;
+    let totalCardsDealt = 0;
+    const INITIAL_DECKS = 8;
+    const TOTAL_CARDS = INITIAL_DECKS * 52;
+    let currentDecksLeft = INITIAL_DECKS;
+
+    // 依據條件設定的權重（1,2,3 取平均值 +1.5 以簡化單鍵操作，或依實際定義）
+    // 註：你給的條件寫「1,2,3則 +1 至 +2」，這裡面板按鍵取中間值 +1.5 以利一鍵計算，你也可以根據實際翻出結果精確微調流水數。
+    
+    function inputCard(type) {
+        totalCardsDealt++;
+        
+        switch(type) {
+            case '1-3':
+                // 由於你設定 1~3 為 +1 至 +2，此處單鍵輸入預設給予 +1.5 權重
+                runningCount += 1.5;
+                break;
+            case '4':
+                runningCount += 3;
+                break;
+            case '5':
+            case '7':
+            case '8':
+                runningCount -= 1;
+                break;
+            case '6':
+                runningCount -= 2;
+                break;
+            case '9-13':
+                runningCount += 0;
+                break;
         }
 
-        function executeRoundEnd(pScore, bScore) {
-            // 計算這一局對牌局真數的權重變動
-            let roundValue = P_EFFECT[pScore] + B_EFFECT[bScore];
-            
-            // 隨局數推進，後期權重放大（模擬剩餘牌數變少效應）
-            roundCount++;
-            let multiplier = 1 + (roundCount * 0.025); 
-            let finalEffect = roundValue * multiplier;
+        // 自動估算剩餘牌副數（每開出52張牌扣除1副，可再手動微調）
+        currentDecksLeft = Math.max(0.5, INITIAL_DECKS - (totalCardsDealt / 52));
+        
+        updateUI();
+    }
 
-            currentTrueCount += finalEffect;
-            historyRounds.push({ p: pScore, b: bScore, effect: finalEffect });
+    // 手動微調剩餘牌副數（點擊按鈕調整）
+    function adjustDeck(val) {
+        currentDecksLeft = Math.max(0.5, Math.min(INITIAL_DECKS, currentDecksLeft + val));
+        updateUI();
+    }
 
-            // 重置單局暫存
-            tempPlayerScore = null;
-            document.getElementById('round-status-text').innerText = `第 ${roundCount} 局已記錄！請輸入新一局【閒家點數】`;
-            document.getElementById('round-status-text').style.color = 'var(--player-color)';
+    // 計算並更新介面
+    function updateUI() {
+        // 更新流水數與張數
+        document.getElementById('runningCount').innerText = runningCount.toFixed(1).replace('.0', '');
+        document.getElementById('cardCount').innerText = totalCardsDealt;
+        document.getElementById('deckCount').innerText = currentDecksLeft.toFixed(1);
 
-            updatePrediction();
+        // 計算真數
+        let trueCount = runningCount / currentDecksLeft;
+        document.getElementById('trueCount').innerText = trueCount.toFixed(2);
+
+        // 判定注碼與趨勢訊號
+        let signalBox = document.getElementById('signalBox');
+        
+        if (trueCount > 10) {
+            signalBox.innerText = `🔥 真數達 ${trueCount.toFixed(1)}！滿足科學注碼加大條件 (優勢向閒)`;
+            signalBox.classList.add('signal-trigger');
+        } else if (trueCount > 0) {
+            signalBox.innerText = "趨勢微幅向閒，維持基礎注碼。";
+            signalBox.classList.remove('signal-trigger');
+        } else if (trueCount < 0) {
+            signalBox.innerText = "趨勢傾向莊家，建議觀望或保守策略。";
+            signalBox.classList.remove('signal-trigger');
+        } else {
+            signalBox.innerText = "正負值平穩，對趨勢無顯著影響。";
+            signalBox.classList.remove('signal-trigger');
         }
+    }
 
-        function updatePrediction() {
-            document.getElementById('round-count').innerText = roundCount;
-
-            // 依據累積真數計算機率波動
-            let playerShift = currentTrueCount * 0.15;
-            let bankerShift = -currentTrueCount * 0.15;
-
-            let finalPlayer = Math.max(20, Math.min(70, 44.62 + playerShift));
-            let finalBanker = Math.max(20, Math.min(70, 45.86 + bankerShift));
-            let finalTie = 100 - finalPlayer - finalBanker;
-
-            document.getElementById('prob-player').innerText = finalPlayer.toFixed(2) + '%';
-            document.getElementById('prob-banker').innerText = finalBanker.toFixed(2) + '%';
-            document.getElementById('prob-tie').innerText = finalTie.toFixed(2) + '%';
-
-            let recElement = document.getElementById('recommendation');
-            let diffElement = document.getElementById('advantage-diff');
-
-            // 降低門檻：只要有 1 局數據就立刻給予傾向提示，不再硬卡 12 張牌
-            if (roundCount === 0) {
-                recElement.innerText = "等候首局";
-                recElement.className = "panel-value";
-                diffElement.innerText = "大數據分析中...";
-            } else {
-                let diff = Math.abs(finalPlayer - finalBanker);
-                if (finalPlayer > finalBanker) {
-                    recElement.innerText = "推薦【閒】";
-                    recElement.className = "panel-value player-text";
-                    diffElement.innerText = `機率傾向閒家 (+${diff.toFixed(2)}%)`;
-                } else if (finalBanker > finalPlayer) {
-                    recElement.innerText = "推薦【莊】";
-                    recElement.className = "panel-value banker-text";
-                    diffElement.innerText = `機率傾向莊家 (+${diff.toFixed(2)}%)`;
-                } else {
-                    recElement.innerText = "機率對等";
-                    recElement.className = "panel-value";
-                    diffElement.innerText = "兩邊開出機率持平";
-                }
-            }
+    // 重設系統
+    function resetSystem() {
+        if(confirm("確定要重設數據，開始新的一靴牌嗎？")) {
+            runningCount = 0;
+            totalCardsDealt = 0;
+            currentDecksLeft = INITIAL_DECKS;
+            updateUI();
+            document.getElementById('signalBox').innerText = "等待數據分析...";
         }
+    }
+</script>
 
-        function undoRound() {
-            if (historyRounds.length > 0) {
-                let lastRound = historyRounds.pop();
-                currentTrueCount -= lastRound.effect;
-                roundCount--;
-                tempPlayerScore = null;
-                document.getElementById('round-status-text').innerText = `已復原！請重新輸入【閒家點數】`;
-                document.getElementById('round-status-text').style.color = 'var(--player-color)';
-                updatePrediction();
-            }
-        }
-
-        function resetAll() {
-            if (confirm("要清空所有局數，重新開始一靴新牌嗎？")) {
-                roundCount = 0;
-                tempPlayerScore = null;
-                historyRounds = [];
-                currentTrueCount = 0;
-                document.getElementById('round-status-text').innerText = `已重置！請輸入新一局【閒家點數】`;
-                document.getElementById('round-status-text').style.color = 'var(--player-color)';
-                updatePrediction();
-            }
-        }
-    </script>
 </body>
 </html>
